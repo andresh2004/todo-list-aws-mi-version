@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Get Code') {
+            steps {
+                echo 'Descargando el código desde GitHub...'
+                // Jenkins ya hace el checkout automático si el job está bien configurado
+            }
+        }
+
+        stage('Static Test') {
+            steps {
+                echo 'Ejecutando análisis estático con flake8...'
+                sh 'pip install flake8'
+                sh 'flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'
+            }
+        }
+    }
+}
+
