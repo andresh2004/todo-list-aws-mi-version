@@ -8,17 +8,17 @@ pipeline {
     stages {
         stage('Get Code') {
             steps {
-                echo "📥 Clonando el repositorio y cambiando a rama develop"
+                echo "Clonando el repositorio y cambiando a rama develop"
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/develop']],
-                    userRemoteConfigs: [[url: 'https://github.com/andresh2004/todo-list-aws-mi-version']]
+                    userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git']]
                 ])
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo "📦 Instalando dependencias necesarias para análisis y pruebas"
+                echo "Instalando dependencias necesarias para análisis y pruebas"
                 sh '''
                     pip install bandit flake8 flake8-html pytest requests awscli
                 '''
@@ -27,7 +27,7 @@ pipeline {
 
         stage('Static Test') {
             steps {
-                echo "🔍 Ejecutando análisis estático con Bandit y Flake8"
+                echo "Ejecutando análisis estático con Bandit y Flake8"
                 sh '''
                     mkdir -p reports
                     bandit -r src/ -f html -o reports/bandit_report.html || true
@@ -54,46 +54,64 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo "🚀 Desplegando aplicación con AWS SAM"
+                echo "Desplegando aplicación con AWS SAM"
                 sh '''
-                    echo "📁 Validando estructura del workspace"
+                    echo "Validando estructura del workspace"
                     ls -la
-                        
-                    echo "📁 Contenido de src"
+                    echo "Contenido de src"
                     ls -la src
 
                     sam build --template-file template.yaml
-
-                    # Despliegue sin necesidad de bucket explícito
-                    sam deploy --stack-name staging-todolist-aws \
-                               --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
-                               --capabilities CAPABILITY_IAM \
-                               --region us-east-1 \
-                               --no-confirm-changeset \
-                               --no-fail-on-empty-changeset
+                    sam deploy \
+                        --stack-name staging-todolist-aws \
+                        --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
+                        --no-confirm-changeset \
+                        --capabilities CAPABILITY_IAM \
+                        --no-fail-on-empty-changeset
                 '''
             }
         }
 
         stage('Rest Test') {
             steps {
-                echo "🧪 Ejecutando pruebas de integración REST con pytest"
+                echo "Ejecutando pruebas de integración REST con pytest"
                 sh '''
                     pip install pytest requests
-                    
-                    echo "🔎 Obteniendo la URL base de la API desplegada..."
+
+                    echo "Obteniendo la URL base de la API desplegada..."
                     BASE_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws \
-                    --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                        --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
-                                   
-                    echo "🌐 URL pública detectada: $BASE_URL"
-                    
+                    echo "URL pública detectada: $BASE_URL"
 
-                    echo "🧪 Ejecutando pytest..."
+                    echo "Ejecutando pytest..."
                     BASE_URL=$BASE_URL PATH=$PATH:~/.local/bin pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
-                    
+                '''
+            }
+        }
+
+        stage('Promote to Production') {
+            steps {
+                echo "Realizando merge de develop a master y promoviendo a producción"
+                sh '''
+                    git config user.name "jenkins"
+                    git config user.email "andresh2004@gmail.com"
+                    git checkout master
+                    git merge origin/develop --no-edit
+                    git push origin master
+
+                    echo "Desplegando en Producción..."
+                    sam build --template-file template.yaml
+                    sam deploy \
+                        --stack-name production-todolist-aws \
+                        --s3-bucket todo-list-aws \
+                        --capabilities CAPABILITY_IAM \
+                        --region us-east-1 \
+                        --no-confirm-changeset \
+                        --no-fail-on-empty-changeset
                 '''
             }
         }
     }
 }
+
