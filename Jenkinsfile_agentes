@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Get Code') {
             steps {
-                echo "Clonando el repositorio y cambiando a rama develop"
+                echo "📥 Clonando el repositorio y cambiando a rama develop"
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/develop']],
                     userRemoteConfigs: [[url: 'https://github.com/andresh2004/todo-list-aws-mi-version']]
@@ -16,11 +16,19 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                echo "📦 Instalando dependencias necesarias para análisis y pruebas"
+                sh '''
+                    pip install bandit flake8 flake8-html pytest requests awscli
+                '''
+            }
+        }
+
         stage('Static Test') {
             steps {
-                echo "Ejecutando analisis estatico con Bandit y Flake8"
+                echo "🔍 Ejecutando análisis estático con Bandit y Flake8"
                 sh '''
-                    pip install bandit flake8 flake8-html
                     mkdir -p reports
                     bandit -r src/ -f html -o reports/bandit_report.html || true
                     flake8 src/ --format=html --htmldir=reports/flake8-html || true
@@ -34,7 +42,7 @@ pipeline {
                     allowMissing: true
                 ])
                 publishHTML(target: [
-                    reportName : 'flake8 violations',
+                    reportName : 'Flake8 Violations',
                     reportDir  : 'reports/flake8-html',
                     reportFiles: 'index.html',
                     keepAll    : true,
@@ -46,30 +54,35 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo "Desplegando aplicacion con AWS SAM"
+                echo "🚀 Desplegando aplicación con AWS SAM"
                 sh '''
+                    echo "📁 Validando ruta actual y archivos"
+                    pwd
+                    ls -l
+
                     sam build --template-file template.yaml
-                    sam deploy --stack-name staging-todolist-aws                         
-                               --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l                         
-                               --capabilities CAPABILITY_IAM                         
-                               --region us-east-1                         
-                               --no-confirm-changeset                         
+
+                    # Despliegue sin necesidad de bucket explícito
+                    sam deploy --stack-name staging-todolist-aws \
+                               --capabilities CAPABILITY_IAM \
+                               --region us-east-1 \
+                               --no-confirm-changeset \
                                --no-fail-on-empty-changeset
-                               
                 '''
             }
         }
 
         stage('Rest Test') {
             steps {
-                echo "Ejecutando pruebas de integracion REST con pytest"
+                echo "🧪 Ejecutando pruebas de integración REST con pytest"
                 sh '''
-                    pip install pytest requests
+                    echo "🔎 Obteniendo URL pública desde CloudFormation Outputs"
+                    API_URL=$(aws cloudformation describe-stacks \
+                        --stack-name staging-todolist-aws \
+                        --query "Stacks[0].Outputs[?OutputKey=='TodoApi'].OutputValue" \
+                        --output text)
 
-                    API_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws                         
-                    --query "Stacks[0].Outputs[?OutputKey=='HelloWorldApi'].OutputValue" --output text)
-
-                    echo "URL publica detectada: $API_URL"
+                    echo "🌐 URL detectada: $API_URL"
 
                     API_URL=$API_URL pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                 '''
@@ -77,4 +90,3 @@ pipeline {
         }
     }
 }
-
