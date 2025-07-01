@@ -2,23 +2,28 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Get Code') {
             steps {
-                echo '📥 Descargando el código desde GitHub...'
-                // Jenkins ya hace el checkout automático si el job está bien configurado
+                echo "Obteniendo código fuente..."
             }
         }
 
         stage('Static Test') {
             steps {
-                echo '🔍 Ejecutando análisis estático con flake8 y bandit...'
-                sh 'pip install --user flake8 bandit'
-                sh '''
-                    export PATH=$PATH:$HOME/.local/bin
-                    mkdir -p reports
-                    flake8 src/ --format=html --htmldir=reports/flake8-report || true
-                    bandit -r src/ -f html -o reports/bandit-report.html || true
-                '''
+                echo '🔍 Ejecutando análisis estático con Flake8 y Bandit...'
+
+                sh 'pip install --user flake8 bandit flake8-html'
+
+                // Set PATH
+                sh 'export PATH=$PATH:$HOME/.local/bin && flake8 src/ --format=html --htmldir=flake8_report --exit-zero'
+
+                sh 'export PATH=$PATH:$HOME/.local/bin && bandit -r src/ -f html -o bandit_report.html || true'
             }
         }
     }
@@ -26,14 +31,14 @@ pipeline {
     post {
         always {
             echo '📦 Publicando reportes de análisis estático...'
-            publishHTML(target: [
-                reportDir: 'reports',
-                reportFiles: 'flake8-report/index.html',
+            publishHTML([
+                reportDir: 'flake8_report',
+                reportFiles: 'index.html',
                 reportName: 'Flake8 Report'
             ])
-            publishHTML(target: [
-                reportDir: 'reports',
-                reportFiles: 'bandit-report.html',
+            publishHTML([
+                reportDir: '.',
+                reportFiles: 'bandit_report.html',
                 reportName: 'Bandit Report'
             ])
         }
