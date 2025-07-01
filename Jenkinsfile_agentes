@@ -103,8 +103,16 @@ pipeline {
                     git push origin master
 
                     echo "Desplegando en Producción..."
-                    sam build --template-file template.yaml
-                    sam deploy \
+                    echo "Verificando si el bucket S3 'todo-list-aws' existe..."
+                    if ! aws s3api head-bucket --bucket todo-list-aws 2>/dev/null; then
+                         echo " Bucket no encontrado, creando..."
+                         aws s3 mb s3://todo-list-aws --region us-east-1
+                       else
+                         echo "El bucket S3 ya existe, continuando..."
+                   fi
+
+                     sam build --template-file template.yaml
+                     sam deploy \
                         --stack-name production-todolist-aws \
                         --s3-bucket todo-list-aws \
                         --capabilities CAPABILITY_IAM \
