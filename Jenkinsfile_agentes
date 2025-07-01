@@ -79,22 +79,24 @@ pipeline {
             steps {
                 echo "🧪 Ejecutando pruebas de integración REST con pytest"
                 sh '''
-                    echo " Obteniendo URL pública desde CloudFormation Outputs"
-                    API_URL=$(aws cloudformation describe-stacks \
-                        --stack-name staging-todolist-aws \
-                        --query "Stacks[0].Outputs[?OutputKey=='TodoApi'].OutputValue" \
-                        --output text)
+                    pip install pytest requests
 
-                    echo "🌐 URL detectada: $API_URL"
+                    echo "🔎 Obteniendo la URL base de la API desplegada..."
+                    API_URL=$(aws cloudformation describe-stacks \
+                      --stack-name staging-todolist-aws \
+                      --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" \
+                      --output text)
 
                     if [ -z "$API_URL" ]; then
-                        echo "❌ No se detectó una URL válida de la API. Abortando pruebas."
+                        echo "❌ No se encontró la URL de la API (BaseUrlApi). Abortando pruebas REST."
                         exit 1
                     fi
 
-                    echo "🐍 Ejecutando pytest con la URL: $API_URL"
-                    which pytest || echo "⚠ pytest no está en el PATH"
-                    python3 -m pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    echo "🌐 URL pública detectada: $API_URL"
+                    export API_URL=$API_URL
+
+                    echo "🧪 Ejecutando pytest..."
+                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                     
                 '''
             }
