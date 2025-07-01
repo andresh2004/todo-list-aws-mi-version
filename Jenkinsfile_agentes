@@ -90,7 +90,7 @@ pipeline {
                     export API_URL=$API_URL
 
                     echo "🧪 Ejecutando pytest..."
-                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    PATH=$PATH:~/.local/bin && pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                     
                 '''
             }
