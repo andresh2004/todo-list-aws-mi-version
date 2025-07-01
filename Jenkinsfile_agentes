@@ -82,12 +82,12 @@ pipeline {
                     pip install pytest requests
                     
                     echo "🔎 Obteniendo la URL base de la API desplegada..."
-                    API_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws \
+                    BASE_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws \
                     --query "Stacks[0].Outputs[?OutputKey=='CreateTodoApi'].OutputValue" --output text)
 
                                    
                     echo "🌐 URL pública detectada: $API_URL"
-                    export API_URL=$API_URL
+                    export BASE_URL=$BASE_URL
 
                     echo "🧪 Ejecutando pytest..."
                     PATH=$PATH:~/.local/bin && pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
