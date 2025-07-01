@@ -1,45 +1,27 @@
-pipeline {
-    agent any
-
-    stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Get Code') {
-            steps {
-                echo "Obteniendo código fuente..."
-            }
-        }
-
-        stage('Static Test') {
-            steps {
-                echo '🔍 Ejecutando análisis estático con Flake8 y Bandit...'
-
-                sh 'pip install --user flake8 bandit flake8-html'
-
-                // Set PATH
-                sh 'export PATH=$PATH:$HOME/.local/bin && flake8 src/ --format=html --htmldir=flake8_report --exit-zero'
-
-                sh 'export PATH=$PATH:$HOME/.local/bin && bandit -r src/ -f html -o bandit_report.html || true'
-            }
-        }
+stage('Static Test') {
+    steps {
+        echo '🔍 Ejecutando análisis estático con flake8 y bandit...'
+        sh 'pip install --user flake8 bandit'
+        sh 'flake8 src/ --format=html --htmldir=flake8_report || true'
+        sh 'bandit -r src/ -f html -o bandit_report.html || true'
     }
-
     post {
         always {
-            echo '📦 Publicando reportes de análisis estático...'
             publishHTML([
                 reportDir: 'flake8_report',
                 reportFiles: 'index.html',
-                reportName: 'Flake8 Report'
+                reportName: 'Flake8 Report',
+                keepAll: true,
+                allowMissing: true,
+                alwaysLinkToLastBuild: true
             ])
             publishHTML([
                 reportDir: '.',
                 reportFiles: 'bandit_report.html',
-                reportName: 'Bandit Report'
+                reportName: 'Bandit Report',
+                keepAll: true,
+                allowMissing: true,
+                alwaysLinkToLastBuild: true
             ])
         }
     }
