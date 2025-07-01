@@ -1,11 +1,14 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+    }
 
+    stages {
         stage('Get Code') {
             steps {
-                echo '📥 Clonando código desde la rama develop...'
+                echo "Clonando el repositorio y cambiando a rama develop"
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/develop']],
                     userRemoteConfigs: [[url: 'https://github.com/andresh2004/todo-list-aws-mi-version']]
@@ -15,57 +18,64 @@ pipeline {
 
         stage('Static Test') {
             steps {
-                echo '🔍 Ejecutando análisis estático con Flake8 y Bandit...'
+                echo "Ejecutando analisis estatico con Bandit y Flake8"
                 sh '''
-                    pip install flake8 flake8-html bandit
-
-                    mkdir -p reports/flake8
-                    flake8 src --format=html --htmldir=reports/flake8 || true
-
-                    mkdir -p reports/bandit
-                    bandit -r src -f html -o reports/bandit/report.html || true
+                    pip install bandit flake8 flake8-html
+                    mkdir -p reports
+                    bandit -r src/ -f html -o reports/bandit_report.html || true
+                    flake8 src/ --format=html --htmldir=reports/flake8-html || true
                 '''
-            }
-
-            post {
-                always {
-                    echo '📤 Publicando reportes de análisis estático...'
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'reports/flake8',
-                        reportFiles: 'index.html',
-                        reportName: 'Flake8 Report'
-                    ])
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'reports/bandit',
-                        reportFiles: 'report.html',
-                        reportName: 'Bandit Report'
-                    ])
-                }
+                publishHTML(target: [
+                    reportName : 'Bandit Report',
+                    reportDir  : 'reports',
+                    reportFiles: 'bandit_report.html',
+                    keepAll    : true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: true
+                ])
+                publishHTML(target: [
+                    reportName : 'flake8 violations',
+                    reportDir  : 'reports/flake8-html',
+                    reportFiles: 'index.html',
+                    keepAll    : true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: true
+                ])
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "🚀 Desplegando con SAM en entorno de Staging..."
+                echo "Desplegando aplicacion con AWS SAM"
                 sh '''
-                    sam build --template-file template.yaml
+                    pip install aws-sam-cli
+                    sam validate
+                    sam build
+                    sam deploy --stack-name staging-todolist-aws                         
+                               --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l                         
+                               --capabilities CAPABILITY_IAM                         
+                               --region us-east-1                         
+                               --no-confirm-changeset                         
+                               --no-fail-on-empty-changeset
+                               --no-progressbar
+                '''
+            }
+        }
 
-                    sam deploy \
-                        --stack-name staging-todolist-aws \
-                        --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
-                        --capabilities CAPABILITY_IAM \
-                        --region us-east-1 \
-                        --no-confirm-changeset \
-                        --no-fail-on-empty-changeset
+        stage('Rest Test') {
+            steps {
+                echo "Ejecutando pruebas de integracion REST con pytest"
+                sh '''
+                    pip install pytest requests
+
+                    API_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws                         
+                    --query "Stacks[0].Outputs[?OutputKey=='HelloWorldApi'].OutputValue" --output text)
+
+                    echo "URL publica detectada: $API_URL"
+
+                    API_URL=$API_URL pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                 '''
             }
         }
     }
 }
-
