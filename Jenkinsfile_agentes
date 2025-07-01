@@ -87,7 +87,15 @@ pipeline {
 
                     echo "🌐 URL detectada: $API_URL"
 
-                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    if [ -z "$API_URL" ]; then
+                        echo "❌ No se detectó una URL válida de la API. Abortando pruebas."
+                        exit 1
+                    fi
+
+                    echo "🐍 Ejecutando pytest con la URL: $API_URL"
+                    which pytest || echo "⚠ pytest no está en el PATH"
+                    python3 -m pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    
                 '''
             }
         }
