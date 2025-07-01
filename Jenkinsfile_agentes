@@ -8,11 +8,9 @@ pipeline {
     stages {
         stage('Get Code') {
             steps {
-                echo "Clonando el repositorio y cambiando a rama develop"
+                echo "Clonando el repositorio y cambiando a rama master"
                 checkout([$class: 'GitSCM',
-                    branches: [[name: '*/develop']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
+                    branches: [[name: '*/master']],  // Cambiar a 'master' para producción
                     userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git']]
                 ])
             }
@@ -56,7 +54,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo "Desplegando aplicación con AWS SAM"
+                echo "Desplegando aplicación con AWS SAM en producción"
                 sh '''
                     echo "Validando estructura del workspace"
                     ls -la
@@ -65,8 +63,8 @@ pipeline {
 
                     sam build --template-file template.yaml
                     sam deploy \
-                        --stack-name staging-todolist-aws \
-                        --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
+                        --stack-name prod-todolist-aws \  // Nombre del stack de producción
+                        --s3-bucket prod-todolist-aws \  // Nombre del bucket S3
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
@@ -76,12 +74,12 @@ pipeline {
 
         stage('Rest Test') {
             steps {
-                echo "Ejecutando pruebas de integración REST con pytest"
+                echo "Ejecutando pruebas de integración REST con pytest en producción"
                 sh '''
                     pip install pytest requests
 
                     echo "Obteniendo la URL base de la API desplegada..."
-                    BASE_URL=$(aws cloudformation describe-stacks --stack-name staging-todolist-aws \
+                    BASE_URL=$(aws cloudformation describe-stacks --stack-name prod-todolist-aws \  // Cambiar a nombre de producción
                         --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                     echo "URL pública detectada: $BASE_URL"
@@ -94,7 +92,7 @@ pipeline {
 
         stage('Promote to Production') {
             steps {
-                echo "Realizando merge de develop a master para marcar versión como Release"
+                echo "Realizando merge de develop a master y promoviendo a producción"
                 sh '''
                     git config user.name "jenkins"
                     git config user.email "andresh2004@gmail.com"
@@ -110,7 +108,6 @@ pipeline {
 
                     # Subimos cambios a master
                     git push origin master
-
                 '''
             }
         }
