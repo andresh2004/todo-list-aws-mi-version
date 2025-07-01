@@ -11,7 +11,9 @@ pipeline {
                 echo "Clonando el repositorio y cambiando a rama develop"
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/develop']],
-                    userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git']]
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git',credentialsId: 'github-ssh']]
                 ])
             }
         }
