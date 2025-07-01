@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -63,8 +64,8 @@ pipeline {
 
                     sam build --template-file template.yaml
                     sam deploy \
-                        --stack-name prod-todolist-aws \
-                        --s3-bucket prod-todolist-aws \
+                        --stack-name prod-todolist-aws \  // Nombre del stack para producción
+                        --s3-bucket prod-todolist-aws \  // El bucket S3 debe apuntar a producción
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
@@ -79,7 +80,7 @@ pipeline {
                     pip install pytest requests
 
                     echo "Obteniendo la URL base de la API desplegada..."
-                    BASE_URL=$(aws cloudformation describe-stacks --stack-name prod-todolist-aws \
+                    BASE_URL=$(aws cloudformation describe-stacks --stack-name prod-todolist-aws \  // Cambiar a prod-todolist-aws
                         --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                     echo "URL pública detectada: $BASE_URL"
