@@ -66,6 +66,7 @@ pipeline {
 
                     # Despliegue sin necesidad de bucket explícito
                     sam deploy --stack-name staging-todolist-aws \
+                               --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
                                --capabilities CAPABILITY_IAM \
                                --region us-east-1 \
                                --no-confirm-changeset \
