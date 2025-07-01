@@ -48,8 +48,8 @@ pipeline {
             steps {
                 echo "Desplegando aplicacion con AWS SAM"
                 sh '''
+                    export AWS_DEFAULT_REGION=us-east-1
                     pip install aws-sam-cli
-                    sam validate
                     sam build
                     sam deploy --stack-name staging-todolist-aws                         
                                --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l                         
