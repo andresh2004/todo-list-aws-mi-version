@@ -80,6 +80,7 @@ pipeline {
                 echo "🧪 Ejecutando pruebas de integración REST con pytest"
                 sh '''
                     pip install pytest requests
+                    export PATH=$PATH:$HOME/.local/bin  # Agrega esta línea
 
                     echo "🔎 Obteniendo la URL base de la API desplegada..."
                     API_URL=$(aws cloudformation describe-stacks \
