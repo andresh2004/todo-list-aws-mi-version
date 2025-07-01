@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Static Test') {
             steps {
-                sh 'flake8 agentes_api/ --format=html --htmldir=flake8_report || true'
-                sh 'bandit -r agentes_api/ -f html -o bandit_report.html || true'
+                sh 'flake8 src/ --format=html --htmldir=flake8_report || true'
+                sh 'bandit -r src/ -f html -o bandit_report.html || true'
             }
         }
 
