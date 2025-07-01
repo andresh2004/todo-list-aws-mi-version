@@ -63,8 +63,8 @@ pipeline {
 
                     sam build --template-file template.yaml
                     sam deploy \
-                        --stack-name prod-todolist-aws \  // Nombre del stack de producción
-                        --s3-bucket prod-todolist-aws \  // Nombre del bucket S3
+                        --stack-name prod-todolist-aws \ 
+                        --s3-bucket prod-todolist-aws \ 
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
