@@ -1,28 +1,33 @@
-stage('Static Test') {
-    steps {
-        echo '🔍 Ejecutando análisis estático con flake8 y bandit...'
-        sh 'pip install --user flake8 bandit'
-        sh 'flake8 src/ --format=html --htmldir=flake8_report || true'
-        sh 'bandit -r src/ -f html -o bandit_report.html || true'
-    }
-    post {
-        always {
-            publishHTML([
-                reportDir: 'flake8_report',
-                reportFiles: 'index.html',
-                reportName: 'Flake8 Report',
-                keepAll: true,
-                allowMissing: true,
-                alwaysLinkToLastBuild: true
-            ])
-            publishHTML([
-                reportDir: '.',
-                reportFiles: 'bandit_report.html',
-                reportName: 'Bandit Report',
-                keepAll: true,
-                allowMissing: true,
-                alwaysLinkToLastBuild: true
-            ])
+pipeline {
+    agent any
+
+    stages {
+        stage('Static Test') {
+            steps {
+                sh 'flake8 agentes_api/ --format=html --htmldir=flake8_report || true'
+                sh 'bandit -r agentes_api/ -f html -o bandit_report.html || true'
+            }
+        }
+
+        stage('Publicar Reportes') {
+            steps {
+                publishHTML([
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'flake8_report',
+                    reportFiles: 'index.html',
+                    reportName: 'Flake8 Report'
+                ])
+                publishHTML([
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: '.',
+                    reportFiles: 'bandit_report.html',
+                    reportName: 'Bandit Report'
+                ])
+            }
         }
     }
 }
