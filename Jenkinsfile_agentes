@@ -94,35 +94,23 @@ pipeline {
 
         stage('Promote to Production') {
             steps {
-                echo "Realizando merge de develop a master y promoviendo a producción"
+                echo "Realizando merge de develop a master para marcar versión como Release"
                 sh '''
                     git config user.name "jenkins"
                     git config user.email "andresh2004@gmail.com"
+
+                    # Nos aseguramos de tener todo actualizado
+                    git fetch origin
+
+                    # Checkout a master
                     git checkout master
+
+                    # Hacemos merge de develop (sin conflictos)
                     git merge origin/develop --no-edit
+
+                    # Subimos cambios a master
                     git push origin master
 
-                    echo "Desplegando en Producción..."
-                    
-                    BUCKET_NAME="todo-list-aws-CP1-D"
-                    REGION="us-east-1"
-                       
-                    echo "Verificando si el bucket S3 'todo-list-aws' existe..."
-                    if ! aws s3api head-bucket --bucket todo-list-aws 2>/dev/null; then
-                         echo " Bucket no encontrado, creando..."
-                         aws s3 mb s3://todo-list-aws --region us-east-1
-                       else
-                         echo "El bucket S3 ya existe, continuando..."
-                   fi
-
-                     sam build --template-file template.yaml
-                     sam deploy \
-                        --stack-name production-todolist-aws \
-                        --s3-bucket todo-list-aws \
-                        --capabilities CAPABILITY_IAM \
-                        --region us-east-1 \
-                        --no-confirm-changeset \
-                        --no-fail-on-empty-changeset
                 '''
             }
         }
