@@ -86,11 +86,11 @@ pipeline {
                     --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                                    
-                    echo "🌐 URL pública detectada: $API_URL"
-                    export BASE_URL=$BASE_URL
+                    echo "🌐 URL pública detectada: $BASE_URL"
+                    
 
                     echo "🧪 Ejecutando pytest..."
-                    PATH=$PATH:~/.local/bin && pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    BASE_URL=$BASE_URL PATH=$PATH:~/.local/bin pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                     
                 '''
             }
