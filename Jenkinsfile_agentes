@@ -56,9 +56,11 @@ pipeline {
             steps {
                 echo "🚀 Desplegando aplicación con AWS SAM"
                 sh '''
-                    echo "📁 Validando ruta actual y archivos"
-                    pwd
-                    ls -l
+                    echo "📁 Validando estructura del workspace"
+                    ls -la
+                        
+                    echo "📁 Contenido de src"
+                    ls -la src
 
                     sam build --template-file template.yaml
 
