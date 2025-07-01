@@ -2,16 +2,36 @@ pipeline {
     agent any
 
     stages {
-        stage('Static Test') {
+        stage('Checkout SCM') {
             steps {
-                sh 'flake8 src/ --format=html --htmldir=flake8_report || true'
-                sh 'bandit -r src/ -f html -o bandit_report.html || true'
+                checkout scm
             }
         }
 
-        stage('Publicar Reportes') {
+        stage('Get Code') {
             steps {
-                publishHTML([
+                echo '📥 Descargando el código fuente desde la rama develop...'
+                sh 'git fetch origin develop && git checkout develop'
+            }
+        }
+
+        stage('Static Test') {
+            steps {
+                echo '🔎 Ejecutando análisis estático con Flake8 y Bandit...'
+
+                // Flake8 con salida HTML
+                sh '''
+                    pip install flake8 flake8-html bandit
+                    flake8 src --format=html --htmldir=flake8_report || true
+                    bandit -r src -f html -o bandit_report.html || true
+                '''
+            }
+        }
+
+        stage('Post Actions') {
+            steps {
+                echo '📤 Publicando reportes HTML...'
+                publishHTML(target: [
                     allowMissing: true,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
@@ -19,7 +39,7 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'Flake8 Report'
                 ])
-                publishHTML([
+                publishHTML(target: [
                     allowMissing: true,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
@@ -29,7 +49,28 @@ pipeline {
                 ])
             }
         }
+
+        stage('Deploy') {
+            steps {
+                echo '🚀 Desplegando aplicación Lambda en entorno de Staging...'
+                sh '''
+                    sam validate --template-file template.yaml
+
+                    sam package \
+                        --template-file template.yaml \
+                        --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-7xmahjfstf4l \
+                        --s3-prefix staging-todolist-aws \
+                        --output-template-file packaged.yaml
+
+                    sam deploy \
+                        --template-file packaged.yaml \
+                        --stack-name staging-todolist-aws \
+                        --capabilities CAPABILITY_IAM \
+                        --no-confirm-changeset \
+                        --no-fail-on-empty-changeset
+                '''
+            }
+        }
     }
 }
 
-//prueba
