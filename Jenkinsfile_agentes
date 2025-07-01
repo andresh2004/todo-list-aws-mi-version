@@ -103,6 +103,10 @@ pipeline {
                     git push origin master
 
                     echo "Desplegando en Producción..."
+                    
+                    BUCKET_NAME="todo-list-aws-CP1-D"
+                    REGION="us-east-1"
+                       
                     echo "Verificando si el bucket S3 'todo-list-aws' existe..."
                     if ! aws s3api head-bucket --bucket todo-list-aws 2>/dev/null; then
                          echo " Bucket no encontrado, creando..."
