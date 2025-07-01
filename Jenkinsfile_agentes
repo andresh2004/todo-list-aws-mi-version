@@ -13,7 +13,7 @@ pipeline {
                     branches: [[name: '*/develop']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [],
-                    userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git',credentialsId: 'github-ssh']]
+                    userRemoteConfigs: [[url: 'git@github.com:andresh2004/todo-list-aws-mi-version.git']]
                 ])
             }
         }
