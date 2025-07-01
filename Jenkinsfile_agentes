@@ -79,7 +79,7 @@ pipeline {
             steps {
                 echo "🧪 Ejecutando pruebas de integración REST con pytest"
                 sh '''
-                    echo "🔎 Obteniendo URL pública desde CloudFormation Outputs"
+                    echo " Obteniendo URL pública desde CloudFormation Outputs"
                     API_URL=$(aws cloudformation describe-stacks \
                         --stack-name staging-todolist-aws \
                         --query "Stacks[0].Outputs[?OutputKey=='TodoApi'].OutputValue" \
@@ -87,7 +87,7 @@ pipeline {
 
                     echo "🌐 URL detectada: $API_URL"
 
-                    API_URL=$API_URL pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
+                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings -q
                 '''
             }
         }
