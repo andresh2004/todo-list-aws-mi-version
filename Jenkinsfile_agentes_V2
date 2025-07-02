@@ -19,7 +19,7 @@ pipeline {
             agent { label 'default' }  // O el agente que uses para despliegue
             steps {
                 echo 'Desplegando entorno serverless...'
-                sh 'echo "https://mi-api-serverless.com" > ${SERVERLESS_URL_FILE}'
+                sh 'echo "https://17lfgx9ha3.execute-api.us-east-1.amazonaws.com/Prod" > ${SERVERLESS_URL_FILE}'
                 
                 // Verificamos el contenido del archivo env_url.txt
                 sh 'cat ${SERVERLESS_URL_FILE}'  // Esto imprimirá el contenido del archivo
