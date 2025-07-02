@@ -77,7 +77,7 @@ pipeline {
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
-                        --parameter-overrides Stage=${env.STAGE}  # Aquí pasamos el parámetro Stage
+                        --parameter-overrides Stage=production  # Forzar el valor de 'Stage' como 'production'
                 """
             }
         }
