@@ -78,7 +78,7 @@ pipeline {
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
-                       # --parameter-overrides Stage=${env.STAGE}  # Aquí pasamos el valor dinámico de Stage desde Jenkins
+                       #---parameter-overrides Stage=${env.STAGE}  # Aquí pasamos el valor dinámico de Stage desde Jenkins
                 """
             }
         }
