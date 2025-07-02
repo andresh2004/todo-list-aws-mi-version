@@ -1,4 +1,4 @@
-", name: 'serverless-url'
+
 pipeline {
     agent none
     environment {
