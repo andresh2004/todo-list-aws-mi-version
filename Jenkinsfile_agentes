@@ -70,6 +70,7 @@ pipeline {
                // Construir y desplegar con SAM
                  sh """
                     sam build --template-file template.yaml
+                    echo "El valor de Stage es: ${env.STAGE}"
                     sam deploy \
                         --stack-name prod-todolist-aws \
                         --s3-bucket prod-todolist-aws \
