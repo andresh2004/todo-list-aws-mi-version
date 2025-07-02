@@ -35,9 +35,9 @@ pipeline {
 
                 // Puedes usar pytest o curl según tu stack
                 sh '''
-                    # Ejemplo con curl
-                    URL=$(cat env_url.txt)
-                    curl -s -o /dev/null -w "%{http_code}" $URL/healthcheck
+                    # Ejemplo con pytest
+                    echo "Ejecutando pruebas con Pytest..."
+                    pytest tests/test_api.py --maxfail=1 --disable-warnings --tb=short
                 '''
             }
         }
