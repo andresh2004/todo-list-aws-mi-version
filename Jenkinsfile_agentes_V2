@@ -42,7 +42,7 @@ pipeline {
                 // Ejecutamos las pruebas de la API usando pytest
                 sh '''
                     # Ejecutar pytest con la URL como argumento
-                    pytest tests/test_api.py --maxfail=1 --disable-warnings --tb=short
+                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings --tb=short
                 '''
             }
         }
