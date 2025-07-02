@@ -1,48 +1,36 @@
 pipeline {
-    agent none  // No usamos un agente global
-
-    environment {
-        // Definir variable de entorno para la URL del entorno serverless
-        SERVERLESS_URL = "http://mi-entorno-serverless.com"
-    }
+    agent none  // Usamos "none" para no asignar un agente por defecto
 
     stages {
         stage('Pruebas Estáticas') {
-            agent {
-                label 'agente-estatico'  // Etiqueta para el agente que ejecutará las pruebas de análisis estático
-            }
+            agent { label 'agente-estatico' }  // Agente para análisis estático
             steps {
                 script {
-                    echo "Ejecutando pruebas de análisis estático (Flake8 y Bandit)..."
+                    // Ejecutar Flake8 y Bandit
+                    echo "Ejecutando pruebas estáticas..."
                     sh 'flake8 .'
                     sh 'bandit -r .'
+                    
+                    // Guardamos la URL o archivos necesarios para el siguiente agente
+                    stash includes: 'url.txt', name: 'url_file'  // Guardamos la URL en un archivo
                 }
             }
         }
 
-        stage('Pruebas API Rest') {
-            agent {
-                label 'agente-api'  // Etiqueta para el agente que ejecutará las pruebas de la API
-            }
+        stage('Pruebas API') {
+            agent { label 'agente-api' }  // Agente para pruebas de API
             steps {
                 script {
-                    echo "Ejecutando pruebas de API Rest (Pytest)..."
-                    sh "pytest --url ${env.SERVERLESS_URL}"
+                    // Recuperamos la URL del primer agente
+                    unstash 'url_file'  // Traemos el archivo con la URL
+                    def url = readFile('url.txt')  // Leemos la URL guardada
+                    echo "La URL del entorno es: ${url}"
+                    
+                    // Ejecutar pruebas de API
+                    echo "Ejecutando pruebas de API..."
+                    sh "pytest --url=${url}"
                 }
             }
-        }
-
-        stage('Tareas Generales') {
-            agent any  // Este agente ejecutará tareas generales por defecto
-            steps {
-                echo "Ejecutando tareas generales..."
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo "Proceso completado."
         }
     }
 }
