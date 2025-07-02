@@ -39,7 +39,7 @@ pipeline {
 
                 // Ejecutamos las pruebas de la API usando pytest
                 sh '''
-                    export API_URL=$(cat env_url.txt)
+                    export BASE_URL=$(cat env_url.txt)
                     # Ejecutar pytest con la URL como argumento
                     pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings --tb=short
                 '''
