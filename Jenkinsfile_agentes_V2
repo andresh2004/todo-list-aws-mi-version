@@ -1,3 +1,4 @@
+", name: 'serverless-url'
 pipeline {
     agent none
     environment {
@@ -15,11 +16,13 @@ pipeline {
         }
 
         stage('Despliegue Serverless') {
-            agent { label 'default' } // o un agente específico si tienes uno para despliegues
+            agent { label 'default' }  // O el agente que uses para despliegue
             steps {
                 echo 'Desplegando entorno serverless...'
-                // Simulación de despliegue y obtención de URL
                 sh 'echo "https://mi-api-serverless.com" > ${SERVERLESS_URL_FILE}'
+                
+                // Verificamos el contenido del archivo env_url.txt
+                sh 'cat ${SERVERLESS_URL_FILE}'  // Esto imprimirá el contenido del archivo
                 stash includes: "${SERVERLESS_URL_FILE}", name: 'serverless-url'
             }
         }
@@ -27,17 +30,16 @@ pipeline {
         stage('Pruebas API REST') {
             agent { label 'agente-api' }
             steps {
-                unstash 'serverless-url'
+                unstash 'serverless-url'  // Recupera el archivo env_url.txt
                 script {
                     def url = readFile("${SERVERLESS_URL_FILE}").trim()
                     echo "Probando API en: ${url}"
                 }
 
-                // Puedes usar pytest o curl según tu stack
+                // Ejecutamos las pruebas de la API usando pytest
                 sh '''
-                    # Ejemplo con pytest
-                    echo "Ejecutando pruebas con Pytest..."
-                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings --tb=short
+                    # Ejecutar pytest con la URL como argumento
+                    pytest --url=$(cat ${SERVERLESS_URL_FILE}) tests/test_api.py --maxfail=1 --disable-warnings --tb=short
                 '''
             }
         }
@@ -52,3 +54,4 @@ pipeline {
         }
     }
 }
+
