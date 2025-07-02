@@ -1,37 +1,54 @@
 pipeline {
-    agent none  // Usamos "none" para no asignar un agente por defecto
+    agent none
+    environment {
+        SERVERLESS_URL_FILE = 'env_url.txt'
+    }
 
     stages {
-        stage('Pruebas Estáticas') {
-            agent { label 'agente-estatico' }  // Agente para análisis estático
+        stage('Análisis Estático') {
+            agent { label 'agente-estatico' }
             steps {
-                script {
-                    // Ejecutar Flake8 y Bandit
-                    echo "Ejecutando pruebas estáticas..."
-                    sh 'flake8 .'
-                    sh 'bandit -r .'
-                    
-                    // Guardamos la URL o archivos necesarios para el siguiente agente
-                    stash includes: 'url.txt', name: 'url_file'  // Guardamos la URL en un archivo
-                }
+                echo 'Ejecutando Flake8 y Bandit...'
+                sh 'flake8 src/'
+                sh 'bandit -r src/'
             }
         }
 
-        stage('Pruebas API') {
-            agent { label 'agente-api' }  // Agente para pruebas de API
+        stage('Despliegue Serverless') {
+            agent { label 'default' } // o un agente específico si tienes uno para despliegues
             steps {
+                echo 'Desplegando entorno serverless...'
+                // Simulación de despliegue y obtención de URL
+                sh 'echo "https://mi-api-serverless.com" > ${SERVERLESS_URL_FILE}'
+                stash includes: "${SERVERLESS_URL_FILE}", name: 'serverless-url'
+            }
+        }
+
+        stage('Pruebas API REST') {
+            agent { label 'agente-api' }
+            steps {
+                unstash 'serverless-url'
                 script {
-                    // Recuperamos la URL del primer agente
-                    unstash 'url_file'  // Traemos el archivo con la URL
-                    def url = readFile('url.txt')  // Leemos la URL guardada
-                    echo "La URL del entorno es: ${url}"
-                    
-                    // Ejecutar pruebas de API
-                    echo "Ejecutando pruebas de API..."
-                    sh "pytest --url=${url}"
+                    def url = readFile("${SERVERLESS_URL_FILE}").trim()
+                    echo "Probando API en: ${url}"
                 }
+
+                // Puedes usar pytest o curl según tu stack
+                sh '''
+                    # Ejemplo con curl
+                    URL=$(cat env_url.txt)
+                    curl -s -o /dev/null -w "%{http_code}" $URL/healthcheck
+                '''
+            }
+        }
+
+        stage('Empaquetado y Finalización') {
+            agent { label 'default' }
+            steps {
+                echo 'Empaquetando aplicación...'
+                sh 'tar -czf app.tar.gz src/'
+                echo 'Pipeline finalizado con éxito.'
             }
         }
     }
 }
-
