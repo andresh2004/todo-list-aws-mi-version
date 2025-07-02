@@ -68,7 +68,8 @@ pipeline {
                   '''
 
                // Construir y desplegar con SAM
-                 sh """
+               echo "El valor de Stage es: ${env.STAGE}"  // Para ver lo que Jenkins está pasando 
+                sh """
                     sam build --template-file template.yaml
                     echo "El valor de Stage es: ${env.STAGE}"
                     sam deploy \
