@@ -37,7 +37,7 @@ pipeline {
                 sh '''
                     # Ejemplo con pytest
                     echo "Ejecutando pruebas con Pytest..."
-                    pytest tests/test_api.py --maxfail=1 --disable-warnings --tb=short
+                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings --tb=short
                 '''
             }
         }
