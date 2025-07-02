@@ -56,12 +56,18 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Desplegando aplicación con AWS SAM en producción"
+                // Definir la variable Stage para el entorno
+                environment {
+                      STAGE = 'prod'  // Cambiar este valor según el entorno
+                }
+                echo "Validando estructura del workspace"
                 sh '''
-                    echo "Validando estructura del workspace"
                     ls -la
                     echo "Contenido de src"
                     ls -la src
+                  '''
 
+                sh """
                     sam build --template-file template.yaml
                     sam deploy \
                         --stack-name prod-todolist-aws \
@@ -69,8 +75,8 @@ pipeline {
                         --no-confirm-changeset \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
-                        --parameter-overrides Stage=production  # Se pasa el valor para producción
-                '''
+                        parameter-overrides Stage=${env.STAGE}  # Aquí pasamos el parámetro Stage
+                """
             }
         }
 
