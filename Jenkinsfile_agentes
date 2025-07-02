@@ -54,12 +54,12 @@ pipeline {
         }
 
         stage('Deploy') {
+              environment {
+               STAGE = 'prod'  // Cambiar este valor según el entorno
+              }
             steps {
                 echo "Desplegando aplicación con AWS SAM en producción"
-                // Definir la variable Stage para el entorno
-                environment {
-                      STAGE = 'prod'  // Cambiar este valor según el entorno
-                }
+                              
                 echo "Validando estructura del workspace"
                 sh '''
                     ls -la
@@ -67,7 +67,8 @@ pipeline {
                     ls -la src
                   '''
 
-                sh """
+               // Construir y desplegar con SAM
+                 sh """
                     sam build --template-file template.yaml
                     sam deploy \
                         --stack-name prod-todolist-aws \
