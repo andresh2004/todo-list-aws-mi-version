@@ -1,0 +1,49 @@
+pipeline {
+    agent none  // No usamos un agente global
+
+    environment {
+        // Definir variable de entorno para la URL del entorno serverless
+        SERVERLESS_URL = "http://mi-entorno-serverless.com"
+    }
+
+    stages {
+        stage('Pruebas Estáticas') {
+            agent {
+                label 'agente-estatico'  // Etiqueta para el agente que ejecutará las pruebas de análisis estático
+            }
+            steps {
+                script {
+                    echo "Ejecutando pruebas de análisis estático (Flake8 y Bandit)..."
+                    sh 'flake8 .'
+                    sh 'bandit -r .'
+                }
+            }
+        }
+
+        stage('Pruebas API Rest') {
+            agent {
+                label 'agente-api'  // Etiqueta para el agente que ejecutará las pruebas de la API
+            }
+            steps {
+                script {
+                    echo "Ejecutando pruebas de API Rest (Pytest)..."
+                    sh "pytest --url ${env.SERVERLESS_URL}"
+                }
+            }
+        }
+
+        stage('Tareas Generales') {
+            agent any  // Este agente ejecutará tareas generales por defecto
+            steps {
+                echo "Ejecutando tareas generales..."
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo "Proceso completado."
+        }
+    }
+}
+
