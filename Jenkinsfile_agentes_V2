@@ -35,7 +35,7 @@ pipeline {
                     def url = readFile("${SERVERLESS_URL_FILE}").trim()
                     echo "Probando API en: ${url}"
            
-                # // Exporta la URL como variable de entorno
+                // Exporta la URL como variable de entorno
                    # sh "export SERVERLESS_URL=${url}"                   
                 }
 
