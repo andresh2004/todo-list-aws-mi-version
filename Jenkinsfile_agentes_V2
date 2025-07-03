@@ -7,8 +7,9 @@ pipeline {
 
     stages {
         stage('Análisis Estático') {
-            agent { label 'agente-estatico' }
+            agent { label 'agente-secundario' }
             steps {
+                sh 'echo Ejecutando como: $(whoami) en $(hostname)'
                 echo 'Ejecutando Flake8 y Bandit...'
                 sh 'flake8 src/'
                 sh 'bandit -r src/'
@@ -16,20 +17,22 @@ pipeline {
         }
 
         stage('Despliegue Serverless') {
-            agent { label 'default' }  // O el agente que uses para despliegue
+            agent { label 'agente_tercero' }
             steps {
+                sh 'echo Ejecutando como: $(whoami) en $(hostname)'
                 echo 'Desplegando entorno serverless...'
                 sh 'echo "https://17lfgx9ha3.execute-api.us-east-1.amazonaws.com/Prod" > ${SERVERLESS_URL_FILE}'
                 
                 // Verificamos el contenido del archivo env_url.txt
-                sh 'cat ${SERVERLESS_URL_FILE}'  // Esto imprimirá el contenido del archivo
+                sh 'cat ${SERVERLESS_URL_FILE}'  // Imprime el contenido del archivo
                 stash includes: "${SERVERLESS_URL_FILE}", name: 'serverless-url'
             }
         }
 
         stage('Pruebas API REST') {
-            agent { label 'agente-api' }
+            agent { label 'agente_cuarto' }
             steps {
+                sh 'echo Ejecutando como: $(whoami) en $(hostname)'
                 unstash 'serverless-url'  // Recupera el archivo env_url.txt
                 script {
                     def url = readFile("${SERVERLESS_URL_FILE}").trim()
@@ -57,6 +60,7 @@ pipeline {
             }
             agent { label 'agente-despliegue' }
             steps {
+                sh 'echo Ejecutando como: $(whoami) en $(hostname)'
                 echo 'Simulando despliegue a producción...'
                 sh 'echo "Aquí iría comando  real de despliegue"'
                 echo 'Despliegue completado con éxito.'
@@ -67,8 +71,9 @@ pipeline {
         }
 
         stage('Empaquetado y Finalización') {
-            agent { label 'default' }
+            agent { label 'agente_tercero' }
             steps {
+                sh 'echo Ejecutando como: $(whoami) en $(hostname)'
                 echo 'Empaquetando aplicación...'
                 sh 'tar -czf app.tar.gz src/'
                 echo 'Pipeline finalizado con éxito.'
