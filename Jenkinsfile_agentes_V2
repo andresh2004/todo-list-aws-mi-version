@@ -50,15 +50,15 @@ pipeline {
         stage('Despliegue en Producción') {
             when {
                expression {
-                     def branch = sh(script: "git rev-parse --abbrev-ref HEAD || echo origin/master", returnStdout: true).trim()
+                     def branch = env.GIT_BRANCH ?: sh(script: "git name-rev --name-only HEAD", returnStdout: true).trim()
                      echo " Rama detectada para producción: ${branch}"
-                     return branch == 'master' || branch == 'origin/master'
+                     return branch.endsWith('master')
                 }
             }
             agent { label 'agente-despliegue' }
             steps {
                 echo 'Simulando despliegue a producción...'
-                sh 'echo "Aquí iría tu comando real de despliegue"'
+                sh 'echo "Aquí iría comando  real de despliegue"'
                 echo 'Despliegue completado con éxito.'
 
                 // Verificar el estado del despliegue
