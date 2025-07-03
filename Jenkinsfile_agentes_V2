@@ -1,0 +1,75 @@
+
+pipeline {
+    agent none
+    environment {
+        SERVERLESS_URL_FILE = 'env_url.txt'
+    }
+
+    stages {
+        stage('Análisis Estático') {
+            agent { label 'agente-estatico' }
+            steps {
+                echo 'Ejecutando Flake8 y Bandit...'
+                sh 'flake8 src/'
+                sh 'bandit -r src/'
+            }
+        }
+
+        stage('Despliegue Serverless') {
+            agent { label 'default' }  // O el agente que uses para despliegue
+            steps {
+                echo 'Desplegando entorno serverless...'
+                sh 'echo "https://17lfgx9ha3.execute-api.us-east-1.amazonaws.com/Prod" > ${SERVERLESS_URL_FILE}'
+                
+                // Verificamos el contenido del archivo env_url.txt
+                sh 'cat ${SERVERLESS_URL_FILE}'  // Esto imprimirá el contenido del archivo
+                stash includes: "${SERVERLESS_URL_FILE}", name: 'serverless-url'
+            }
+        }
+
+        stage('Pruebas API REST') {
+            agent { label 'agente-api' }
+            steps {
+                unstash 'serverless-url'  // Recupera el archivo env_url.txt
+                script {
+                    def url = readFile("${SERVERLESS_URL_FILE}").trim()
+                    echo "Probando API en: ${url}"
+                                                                
+                }
+
+                // Ejecutamos las pruebas de la API usando pytest
+                sh '''
+                    export BASE_URL=$(cat env_url.txt)
+                    # Ejecutar pytest con la URL como argumento
+                    pytest test/integration/todoApiTest.py --maxfail=1 --disable-warnings --tb=short
+                '''
+            }
+        }
+
+         // Etapa de despliegue en producción para 'master' (CD)
+        stage('Despliegue en Producción') {
+            when {
+                branch 'master' // Solo ejecuta esta etapa en la rama 'master'
+            }
+            agent { label 'agente-despliegue' }
+            steps {
+                echo 'Iniciando despliegue a producción...'
+                // Aquí puedes usar comandos específicos para el despliegue, por ejemplo:
+                sh 'aws s3 cp app.tar.gz s3://my-app-bucket/'  // Ejemplo de despliegue con AWS CLI
+
+                // Verificar el estado del despliegue
+                echo 'Despliegue completado con éxito.'
+            }
+        }
+
+        stage('Empaquetado y Finalización') {
+            agent { label 'default' }
+            steps {
+                echo 'Empaquetando aplicación...'
+                sh 'tar -czf app.tar.gz src/'
+                echo 'Pipeline finalizado con éxito.'
+            }
+        }
+    }
+}
+
