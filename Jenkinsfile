@@ -45,7 +45,7 @@ pipeline {
             agent { label 'agente-secundario' }
             steps {
                 sh 'echo  Desplegando aplicación en producción con SAM...'
-                sh 'sam deploy --config-env default --config-file samconfig.toml'
+                sh 'sam deploy --config-env default --config-file samconfig.toml --region us-east-1'
             }
         }
 
