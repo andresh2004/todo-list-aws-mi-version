@@ -10,22 +10,22 @@ pipeline {
 
                 script {
                     def configBranch = env.GIT_BRANCH?.contains('master') ? 'production' : 'staging'
-                    echo "🔧 Descargando configuración desde rama: ${configBranch}"
+                    echo " Descargando configuración desde rama: ${configBranch}"
                     sh """
                         rm -f samconfig.toml
                         git clone --branch ${configBranch} https://github.com/andresh2004/todo-list-aws-config.git config-repo
                         cp config-repo/samconfig.toml .
                         rm -rf config-repo
-                        echo '✅ samconfig.toml descargado correctamente:'
+                        echo 'samconfig.toml descargado correctamente:'
                         cat samconfig.toml
                     """
                 }
             }
         }
 
-        // Puedes copiar aquí las demás etapas que ya tienes:
+        // Copiar aquí las demás etapas que ya se tiene:
         // Análisis Estático, Despliegue Serverless, Pruebas API REST, etc.
-        // Solo asegúrate de que usen el samconfig.toml descargado
+        // Solo me debo asegurar  de que usemos el samconfig.toml descargado
 
         stage('Simulación') {
             agent { label 'agente-secundario' }
