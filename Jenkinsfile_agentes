@@ -103,7 +103,7 @@ pipeline {
            script {
               
 
-            def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+            def stageName = 'production'  // Forzamos el mismo entorno que en Deploy
             def testFile = (stageName == 'production')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
