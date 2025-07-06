@@ -6,10 +6,7 @@ pipeline {
         AWS_DEFAULT_REGION = 'us-east-1'
     }
    
-    // Variable global para determinar el entorno
-    // Se evalúa una vez al inicio del pipeline
-    def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-
+    
     stages {
         stage('Get Code') {
             steps {
@@ -60,9 +57,8 @@ pipeline {
         stage('Set Stage') {
            steps {
               script {
-                  stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-                  echo "Entorno de despliegue seleccionado: ${stageName}"
-
+                 def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+                 echo "Entorno de despliegue seleccionado: ${stageName}"
             }
          }
       }
@@ -103,7 +99,8 @@ pipeline {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
            script {
-               def testFile = (stageName == 'production')
+              def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+            def testFile = (stageName == 'production')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
 
