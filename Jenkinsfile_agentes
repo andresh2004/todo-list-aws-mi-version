@@ -56,7 +56,7 @@ pipeline {
         stage('Set Stage') {
            steps {
               script {
-                env.STAGE = (env.BRANCH_NAME == 'master') ? 'prod' : 'staging'
+                env.STAGE = (env.BRANCH_NAME == 'master') ? 'prodution' : 'staging'
                 echo "Entorno de despliegue seleccionado: ${env.STAGE}"
               }
           }
