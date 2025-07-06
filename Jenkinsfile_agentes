@@ -68,41 +68,40 @@ pipeline {
         
 
         stage('Deploy') {
-              environment {
-             env.STAGE_NAME  = 'production'  // Cambiar este valor según el entorno
-              }
             steps {
-                echo "Desplegando aplicación con AWS SAM en producción"
-                              
-                echo "Validando estructura del workspace"
-                sh '''
-                    ls -la
-                    echo "Contenido de src"
-                    ls -la src
-                  '''
+        script {
+            def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+            echo "Desplegando aplicación con AWS SAM en entorno: ${stageName}"
 
-               // Construir y desplegar con SAM
-               echo "El valor de Stage es: ${env.STAGE}"  // Para ver lo que Jenkins está pasando 
-                sh """
-                    sam build --template-file template.yaml
-                    echo "El valor de Stage es: ${env.STAGE}"
-                    sam deploy \
-                        --stack-name prod-todolist-aws \
-                        --s3-bucket prod-todolist-aws \
-                        --no-confirm-changeset \
-                        --capabilities CAPABILITY_IAM \
-                        --no-fail-on-empty-changeset
+            echo "Validando estructura del workspace"
+            sh '''
+                ls -la
+                echo "Contenido de src"
+                ls -la src
+            '''
 
-               """
+            sh """
+                sam build --template-file template.yaml
+                echo "El valor de Stage es: ${stageName}"
+                sam deploy \
+                    --stack-name ${stageName}-todolist-aws \
+                    --s3-bucket ${stageName}-todolist-aws \
+                    --no-confirm-changeset \
+                    --capabilities CAPABILITY_IAM \
+                    --no-fail-on-empty-changeset
+            """
             }
         }
-
+    }
+   
         stage('Rest Test') {
            steps {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
            script {
-              def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+              '
+
+            ddef stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
             def testFile = (stageName == 'production')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
@@ -111,7 +110,7 @@ pipeline {
                 pip install pytest requests
 
                 echo "Obteniendo la URL base de la API desplegada..."
-                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
+                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \\
                     --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                 echo "URL pública detectada: \$BASE_URL"
