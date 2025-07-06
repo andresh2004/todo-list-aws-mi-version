@@ -102,6 +102,8 @@ pipeline {
                 ? 'test/integration/todoApiReadOnlyTest.py' 
                 : 'test/integration/todoApiTest.py'
 
+           def stageName = (env.BRANCH_NAME == 'master') ? 'prod' : 'staging'
+
             sh '''
                 pip install pytest requests
 
