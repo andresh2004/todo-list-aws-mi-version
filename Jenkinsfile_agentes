@@ -56,11 +56,10 @@ pipeline {
          
         stage('Set Stage') {
            steps {
-              script {
-                 script {
+             steps {
+        script {
             def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
             echo "Entorno de despliegue seleccionado: ${stageName}"
-            // Puedes guardar el valor en una variable global si lo necesitas más adelante
             currentBuild.displayName = "#${env.BUILD_NUMBER} - ${stageName}"
             }
          }
