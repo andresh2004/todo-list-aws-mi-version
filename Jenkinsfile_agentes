@@ -121,10 +121,8 @@ pipeline {
            """
 
           sh shellScript
-}
-
-          
-         
+     
+            
        }
     }
 } 
