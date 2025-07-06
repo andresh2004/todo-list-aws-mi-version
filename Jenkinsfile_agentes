@@ -66,7 +66,7 @@ pipeline {
 
         stage('Deploy') {
               environment {
-               STAGE = 'production'  // Cambiar este valor según el entorno
+             env.STAGE_NAME  = 'production'  // Cambiar este valor según el entorno
               }
             steps {
                 echo "Desplegando aplicación con AWS SAM en producción"
