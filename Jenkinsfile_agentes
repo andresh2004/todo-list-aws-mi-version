@@ -87,6 +87,7 @@ pipeline {
                     --stack-name ${stageName}-todolist-aws \
                     --s3-bucket ${bucketName} \
                     --no-confirm-changeset \
+                    --parameter-overrides Stage=${stageName} \
                     --capabilities CAPABILITY_IAM \
                     --no-fail-on-empty-changeset
            
