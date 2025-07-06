@@ -95,31 +95,32 @@ pipeline {
 
         stage('Rest Test') {
            steps {
-        echo "Ejecutando pruebas de integración REST según el entorno"
+            echo "Ejecutando pruebas de integración REST según el entorno"
 
         script {
-
-           def testFile = (env.BRANCH_NAME == 'master')
-                ? 'test/integration/todoApiReadOnlyTest.py'
-                : 'test/integration/todoApiTest.py'
+            def testFile = (env.BRANCH_NAME == 'master')
+              ? 'test/integration/todoApiReadOnlyTest.py'
+              : 'test/integration/todoApiTest.py'
 
            def stageName = (env.BRANCH_NAME == 'master') ? 'prod' : 'staging'
 
-        sh '''
-             pip install pytest requests
+           def shellScript = """
+               pip install pytest requests
 
-             echo "Obteniendo la URL base de la API desplegada..."
-             BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
-               --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+               echo "Obteniendo la URL base de la API desplegada..."
+               BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
+                --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
-             echo "URL pública detectada: \$BASE_URL"
+              echo "URL pública detectada: \$BASE_URL"
 
-            echo "Ejecutando pytest sobre: ${testFile}"
-            BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
-        
-         '''   
-           
-        }
+              echo "Ejecutando pytest sobre: ${testFile}"
+              BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
+        """
+
+           sh shellScript
+          
+         
+       }
     }
 } 
         
