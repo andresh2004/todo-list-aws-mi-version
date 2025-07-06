@@ -59,9 +59,9 @@ pipeline {
          
         stage('Set Stage') {
            steps {
-        script {
-            def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-            echo "Entorno de despliegue seleccionado: ${stageName}"
+              script {
+                  stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+                  echo "Entorno de despliegue seleccionado: ${stageName}"
 
             }
          }
@@ -103,8 +103,7 @@ pipeline {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
            script {
-              def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-            def testFile = (stageName == 'production')
+               def testFile = (stageName == 'production')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
 
