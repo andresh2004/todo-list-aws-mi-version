@@ -74,11 +74,11 @@ pipeline {
             echo "Desplegando aplicación con AWS SAM en entorno: ${stageName}"
 
             echo "Validando estructura del workspace"
-            sh '''
+            sh """
                 ls -la
                 echo "Contenido de src"
                 ls -la src
-            '''
+            """
 
             sh """
                 sam build --template-file template.yaml
