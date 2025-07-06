@@ -122,26 +122,26 @@ pipeline {
         stage('Promote to Production') {
             steps {
                 echo 'Promoción omitida: ya estamos en master'
-                 # sh '''
-                     # git config user.name "jenkins"
-                     # git config user.email "andresh2004@gmail.com"
+                 // sh '''
+                     // git config user.name "jenkins"
+                     // git config user.email "andresh2004@gmail.com"
 
-                    # Nos aseguramos de tener todo actualizado
-                     # git fetch origin
+                    // Nos aseguramos de tener todo actualizado
+                     //git fetch origin
 
-                    # Checkout a master
-                    # git checkout master
+                    // Checkout a master
+                    // git checkout master
 
-                    # Hacemos merge de develop (sin conflictos)
-                    # git merge origin/develop --no-edit
+                    // Hacemos merge de develop (sin conflictos)
+                    // git merge origin/develop --no-edit
 
 
-                    # Traemos los últimos cambios remotos de master (solo si no hay conflictos)
-                    # git pull --ff-only origin master
+                    // Traemos los últimos cambios remotos de master (solo si no hay conflictos)
+                    // git pull --ff-only origin master
                    
-                    # Subimos cambios a master
-                    # git push origin master
-                 # '''
+                    // Subimos cambios a master
+                    // git push origin master
+                 // '''
             }
         }
     }
