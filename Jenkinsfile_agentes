@@ -109,7 +109,7 @@ pipeline {
 
                 echo "Obteniendo la URL base de la API desplegada..."
                 BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
-                    --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                  --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                 echo "URL pública detectada: \$BASE_URL"
 
