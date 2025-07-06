@@ -137,8 +137,8 @@ pipeline {
                     # Hacemos merge de develop (sin conflictos)
                     git merge origin/develop --no-edit
 
-                    # Traemos los últimos cambios remotos antes de hacer push
-                    # git pull --rebase origin master
+                    # Traemos los últimos cambios remotos de master (solo si no hay conflictos)
+                    git pull --ff-only origin master
 
                     # Subimos cambios a master
                     git push origin master
