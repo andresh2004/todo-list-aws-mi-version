@@ -69,6 +69,8 @@ pipeline {
             steps {
         script {
             def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
+            def bucketName = 'prod-todolist-aws'  // usar el bucket existente    
+
             echo "Desplegando aplicación con AWS SAM en entorno: ${stageName}"
 
             echo "Validando estructura del workspace"
