@@ -102,18 +102,18 @@ pipeline {
                 ? 'test/integration/todoApiReadOnlyTest.py' 
                 : 'test/integration/todoApiTest.py'
 
-            sh """
+            sh '''
                 pip install pytest requests
 
                 echo "Obteniendo la URL base de la API desplegada..."
                 BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${env.STAGE}-todolist-aws \
                     --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
-                echo "URL pública detectada: \$BASE_URL"
+                echo "URL pública detectada: $BASE_URL"
 
-                echo "Ejecutando pytest sobre: ${testFile}"
-                BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
-            """
+                echo "Ejecutando pytest sobre: ''' + testFile + '''"
+                BASE_URL=$BASE_URL PATH=$PATH:~/.local/bin pytest ''' + testFile + ''' --maxfail=1 --disable-warnings -q
+            '''
         }
     }
 } 
