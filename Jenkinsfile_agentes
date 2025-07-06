@@ -99,7 +99,7 @@ pipeline {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
            script {
-              '
+              
 
             ddef stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
             def testFile = (stageName == 'production')
