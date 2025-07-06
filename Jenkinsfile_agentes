@@ -98,7 +98,7 @@ pipeline {
         echo "Ejecutando pruebas de integración REST según el entorno"
 
         script {
-<<<<<<< HEAD
+
             def testFile = (env.BRANCH_NAME == 'master')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
@@ -111,17 +111,8 @@ pipeline {
                 echo "Obteniendo la URL base de la API desplegada..."
                 BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
                   --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-=======
-            def testFile = (env.BRANCH_NAME == 'master') 
-                ? 'test/integration/todoApiReadOnlyTest.py' 
-                : 'test/integration/todoApiTest.py'
 
-            sh """
-                pip install pytest requests
-
-                echo "Obteniendo la URL base de la API desplegada..."
-                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${env.STAGE}-todolist-aws \
-                    --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+            
             """
         }
     }
@@ -144,10 +135,9 @@ pipeline {
                     # Hacemos merge de develop (sin conflictos)
                     git merge origin/develop --no-edit
 
-<<<<<<< HEAD
+
                     # Traemos los últimos cambios remotos de master (solo si no hay conflictos)
                     git pull --ff-only origin master
-=======
                    
                     # Subimos cambios a master
                     git push origin master
