@@ -98,27 +98,29 @@ pipeline {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
         script {
-            def testFile = (env.BRANCH_NAME == 'master')
-              ? 'test/integration/todoApiReadOnlyTest.py'
-              : 'test/integration/todoApiTest.py'
+           // Asignamos el entorno real a una variable de entorno
+            env.STAGE = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
 
-           def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-           echo "Entorno de despliegue seleccionado: ${env.STAGE}"
+            def testFile = (env.STAGE == 'production')
+                ? 'test/integration/todoApiReadOnlyTest.py'
+                : 'test/integration/todoApiTest.py'
 
-           def shellScript = """
-               pip install pytest requests
+            echo "Entorno de despliegue seleccionado: ${env.STAGE}"
 
-               echo "Obteniendo la URL base de la API desplegada..."
-               BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
-                --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+            def shellScript = """
+                pip install pytest requests
 
-              echo "URL pública detectada: \$BASE_URL"
+                echo "Obteniendo la URL base de la API desplegada..."
+                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${env.STAGE}-todolist-aws \
+                    --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
-              echo "Ejecutando pytest sobre: ${testFile}"
-              BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
-        """
+                echo "URL pública detectada: \$BASE_URL"
 
-           sh shellScript
+                echo "Ejecutando pytest sobre: ${testFile}"
+                BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
+            """
+
+            sh shellScript
           
          
        }
