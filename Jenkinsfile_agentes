@@ -105,7 +105,7 @@ pipeline {
 
            def stageName = (env.BRANCH_NAME == 'master') ? 'prod' : 'staging'
 
-        sh """
+        sh '''
              pip install pytest requests
 
              echo "Obteniendo la URL base de la API desplegada..."
@@ -117,7 +117,7 @@ pipeline {
             echo "Ejecutando pytest sobre: ${testFile}"
             BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
         
-         """   
+         '''   
            
         }
     }
