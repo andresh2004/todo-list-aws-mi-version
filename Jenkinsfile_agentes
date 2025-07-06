@@ -98,29 +98,24 @@ pipeline {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
           script {
-            // Asignar correctamente el entorno
-            env.STAGE = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
-
-            def testFile = (env.STAGE == 'production')
-             ? 'test/integration/todoApiReadOnlyTest.py'
-             : 'test/integration/todoApiTest.py'
-
-             echo "Entorno de despliegue seleccionado: ${env.STAGE}"
+             def testFile = (env.STAGE == 'production')
+                ? 'test/integration/todoApiReadOnlyTest.py'
+                : 'test/integration/todoApiTest.py'
 
             def shellScript = """
                 pip install pytest requests
 
                 echo "Obteniendo la URL base de la API desplegada..."
                 BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${env.STAGE}-todolist-aws \
-                   --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                    --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                 echo "URL pública detectada: \$BASE_URL"
 
-               echo "Ejecutando pytest sobre: ${testFile}"
-               BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
-           """
+                echo "Ejecutando pytest sobre: ${testFile}"
+                BASE_URL=\$BASE_URL PATH=\$PATH:~/.local/bin pytest ${testFile} --maxfail=1 --disable-warnings -q
+            """
 
-          sh shellScript
+            sh shellScript
      
             
        }
