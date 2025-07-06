@@ -5,6 +5,10 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
     }
+   
+    // Variable global para determinar el entorno
+    // Se evalúa una vez al inicio del pipeline
+    def stageName = (env.BRANCH_NAME == 'master') ? 'production' : 'staging'
 
     stages {
         stage('Get Code') {
@@ -55,11 +59,8 @@ pipeline {
          
         stage('Set Stage') {
            steps {
-              script {
-                env.STAGE = (env.BRANCH_NAME == 'master') ? 'prodution' : 'staging'
-                echo "Entorno de despliegue seleccionado: ${env.STAGE}"
-              }
-          }
+               echo "Entorno de despliegue seleccionado: ${env.STAGE}"
+            }
       }
         
 
@@ -97,8 +98,8 @@ pipeline {
            steps {
             echo "Ejecutando pruebas de integración REST según el entorno"
 
-          script {
-             def testFile = (env.STAGE == 'production')
+           script {
+            def testFile = (stageName == 'production')
                 ? 'test/integration/todoApiReadOnlyTest.py'
                 : 'test/integration/todoApiTest.py'
 
@@ -106,7 +107,7 @@ pipeline {
                 pip install pytest requests
 
                 echo "Obteniendo la URL base de la API desplegada..."
-                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${env.STAGE}-todolist-aws \
+                BASE_URL=\$(aws cloudformation describe-stacks --stack-name ${stageName}-todolist-aws \
                     --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
 
                 echo "URL pública detectada: \$BASE_URL"
